@@ -15,6 +15,21 @@ Future<void> main(List<String> arguments) async {
 }
 
 Future<void> createProject() async {
+  if (Platform.isWindows) {
+    // Cek apakah sedang di PowerShell
+    final shellEnv = Platform.environment['PSModulePath'];
+    final isPowerShell = shellEnv != null;
+
+    if (!isPowerShell) {
+      print('⚠️ Please run this command in PowerShell to avoid path issues.');
+      print('Example:');
+      print('powershell -Command "flast create"');
+      exit(1);
+    } else {
+      print('✅ Detected PowerShell on Windows.');
+    }
+  }
+
   final shell = Shell();
 
   // Tanya apakah menggunakan FVM
@@ -26,22 +41,20 @@ Future<void> createProject() async {
   // Prompt data dari user
   final org = Input(prompt: 'What is your organization?', defaultValue: 'com.example').interact();
 
-  final platformsSelection =
-      MultiSelect(
-        prompt: 'Choose platforms (use ↑/↓ to navigate, space to select, enter to confirm)',
-        options: ['android', 'ios', 'web', 'windows', 'linux', 'macos'],
-        defaults: [true, true, true, false, false, false],
-      ).interact();
+  final platformsSelection = MultiSelect(
+    prompt: 'Choose platforms (use ↑/↓ to navigate, space to select, enter to confirm)',
+    options: ['android', 'ios', 'web', 'windows', 'linux', 'macos'],
+    defaults: [true, true, true, false, false, false],
+  ).interact();
 
-  final platforms =
-      [
-        'android',
-        'ios',
-        'web',
-        'windows',
-        'linux',
-        'macos',
-      ].asMap().entries.where((e) => platformsSelection.contains(e.key)).map((e) => e.value).toList();
+  final platforms = [
+    'android',
+    'ios',
+    'web',
+    'windows',
+    'linux',
+    'macos',
+  ].asMap().entries.where((e) => platformsSelection.contains(e.key)).map((e) => e.value).toList();
 
   final projectName = Input(prompt: 'What is your project name?', defaultValue: 'my_app').interact();
 
@@ -71,30 +84,29 @@ Future<void> createProject() async {
   final pubspecFile = File('pubspec.yaml');
   if (pubspecFile.existsSync()) {
     final lines = pubspecFile.readAsLinesSync();
-    final updatedLines =
-        lines.map((line) {
-          if (line.trim().startsWith('name:')) {
-            return 'name: $projectName';
-          }
-          return line;
-        }).toList();
+    final updatedLines = lines.map((line) {
+      if (line.trim().startsWith('name:')) {
+        return 'name: $projectName';
+      }
+      return line;
+    }).toList();
 
     pubspecFile.writeAsStringSync(updatedLines.join('\n'));
     print('✅ Pubspec.yaml updated successfully!');
   }
 
   // Hapus git lama dan init ulang
-  await shell.run('rm -rf .git');
+  await safeDelete('.git');
   await shell.run('git init');
 
   // Copy .env.example jika ada
   if (File('.env.example').existsSync()) {
-    await shell.run('cp .env.example .env');
+    await runCopy('.env.example', '.env');
   }
 
   // Hapus semua platform lama
   for (var platform in ['android', 'ios', 'web', 'windows', 'linux', 'macos']) {
-    await shell.run('rm -rf $platform');
+    await safeDelete(platform);
   }
 
   // Install Flutter versi yang diminta via FVM (jika dipilih)
@@ -111,4 +123,22 @@ Future<void> createProject() async {
   print('✅ Project $projectName created successfully!');
   print('cd $projectName');
   print(useFvm ? 'fvm flutter run' : 'flutter run');
+}
+
+Future<void> safeDelete(String path) async {
+  final dir = Directory(path);
+  if (await dir.exists()) {
+    await dir.delete(recursive: true);
+  }
+}
+
+Future<void> runCopy(String sourcePath, String destinationPath) async {
+  final sourceFile = File(sourcePath);
+
+  if (await sourceFile.exists()) {
+    await sourceFile.copy(destinationPath);
+    print('✅ Copied $sourcePath to $destinationPath');
+  } else {
+    print('⚠️ Source file not found: $sourcePath');
+  }
 }

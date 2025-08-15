@@ -1,3 +1,7 @@
+## 0.0.3
+
+- Fix (Windows): Only work in powershell
+
 ## 0.0.2
 
 - Fix: `flast as globally activated doesn't support Dart 3.7.0.`
