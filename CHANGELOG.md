@@ -1,3 +1,7 @@
+## 0.0.2
+
+- Fix: `flast as globally activated doesn't support Dart 3.7.0.`
+
 ## 0.0.1
 
 - Initial version.
