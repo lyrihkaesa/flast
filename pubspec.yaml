@@ -1,0 +1,22 @@
+name: flast
+description: CLI Kaesa Flutter Starter Kit generator
+version: 0.0.1
+homepage: https://github.com/lyrihkaesa/flast
+repository: https://github.com/lyrihkaesa/flast
+issue_tracker: https://github.com/lyrihkaesa/flast/issues
+
+environment:
+  sdk: ^3.7.0
+
+# Add regular dependencies here.
+dependencies:
+  args: ^2.4.2 # parsing command line
+  interact: ^2.1.1 # prompt interaktif
+  process_run: ^0.13.1 # eksekusi command shell
+
+dev_dependencies:
+  lints: ^5.0.0
+  test: ^1.24.0
+
+executables:
+  flast:
