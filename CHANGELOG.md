@@ -1,3 +1,9 @@
+## 0.0.4
+
+- Automatic setup dart fvm
+- mason get
+- build freezed
+
 ## 0.0.3
 
 - Fix (Windows): Only work in powershell

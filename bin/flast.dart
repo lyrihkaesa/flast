@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:interact/interact.dart';
@@ -21,7 +22,7 @@ Future<void> createProject() async {
     final isPowerShell = shellEnv != null;
 
     if (!isPowerShell) {
-      print('⚠️ Please run this command in PowerShell to avoid path issues.');
+      print('⚠️  Please run this command in PowerShell to avoid path issues.');
       print('Example:');
       print('powershell -Command "flast create"');
       exit(1);
@@ -30,13 +31,12 @@ Future<void> createProject() async {
     }
   }
 
+  final projectName = Input(prompt: 'What is your project name?', defaultValue: 'my_app').interact();
+
+  // Cek apakah project sudah ada
+  await handleExistingProject(projectName);
+
   final shell = Shell();
-
-  // Tanya apakah menggunakan FVM
-  final useFvm = Confirm(prompt: 'Do you want to use FVM?', defaultValue: false).interact();
-
-  final flutterCmd = useFvm ? 'fvm flutter' : 'flutter';
-  // final dartCmd = useFvm ? 'fvm dart' : 'dart';
 
   // Prompt data dari user
   final org = Input(prompt: 'What is your organization?', defaultValue: 'com.example').interact();
@@ -56,13 +56,10 @@ Future<void> createProject() async {
     'macos',
   ].asMap().entries.where((e) => platformsSelection.contains(e.key)).map((e) => e.value).toList();
 
-  final projectName = Input(prompt: 'What is your project name?', defaultValue: 'my_app').interact();
+  // Tanya apakah menggunakan FVM
+  final useFvm = Confirm(prompt: 'Do you want to use FVM?', defaultValue: false).interact();
 
-  String flutterVersion = 'stable';
-  if (useFvm) {
-    flutterVersion =
-        Input(prompt: 'Flutter version for FVM (e.g. 3.32.5 or stable)', defaultValue: 'stable').interact();
-  }
+  final flutterCmd = useFvm ? 'fvm flutter' : 'flutter';
 
   // Pilih bahasa Android
   final androidLangIndex =
@@ -111,7 +108,8 @@ Future<void> createProject() async {
 
   // Install Flutter versi yang diminta via FVM (jika dipilih)
   if (useFvm) {
-    await shell.run('fvm install $flutterVersion');
+    // await shell.run('fvm install $flutterVersion --setup');
+    await installFlutterFromFvmrc(shell);
   }
 
   // Jalankan flutter create dengan bahasa yang dipilih
@@ -120,9 +118,20 @@ Future<void> createProject() async {
     '--android-language $androidLang --ios-language $iosLang .',
   );
 
-  print('✅ Project $projectName created successfully!');
-  print('cd $projectName');
-  print(useFvm ? 'fvm flutter run' : 'flutter run');
+  await runPostSetup(shell: shell, useFvm: useFvm);
+
+  print('\n🎉 Project $projectName created successfully!');
+  logStep('Next steps:');
+  logStep('cd $projectName');
+  logStep('mason get');
+  logStep('dart run build_runner build --delete-conflicting-outputs');
+  if (useFvm) {
+    logStep('fvm use');
+    logStep('fvm flutter run');
+  } else {
+    logStep('flutter run');
+  }
+  print('========================================================= \n');
 }
 
 Future<void> safeDelete(String path) async {
@@ -139,6 +148,83 @@ Future<void> runCopy(String sourcePath, String destinationPath) async {
     await sourceFile.copy(destinationPath);
     print('✅ Copied $sourcePath to $destinationPath');
   } else {
-    print('⚠️ Source file not found: $sourcePath');
+    print('⚠️  Source file not found: $sourcePath');
+  }
+}
+
+void logStep(String message, {int indent = 2}) {
+  final spaces = ' ' * indent;
+  print('$spaces$message');
+}
+
+Future<void> runPostSetup({required Shell shell, bool useFvm = false}) async {
+  // Tanya user apakah mau menjalankan mason get
+  final runMason = Confirm(
+    prompt: 'Do you want to run "mason get"?',
+    defaultValue: true,
+  ).interact();
+
+  if (runMason) {
+    print('🚀 Running "mason get"...');
+    await shell.run('mason get');
+  } else {
+    print('⚠️  Skipping "mason get".');
+  }
+
+  // Tanya user apakah mau menjalankan build_runner
+  final runBuildRunner = Confirm(
+    prompt: 'Do you want to run "dart run build_runner build --delete-conflicting-outputs"?',
+    defaultValue: true,
+  ).interact();
+
+  if (runBuildRunner) {
+    print('🚀 Running "build_runner"...');
+    await shell.run('dart run build_runner build --delete-conflicting-outputs');
+  } else {
+    print('⚠️  Skipping "build_runner".');
+  }
+}
+
+Future<void> handleExistingProject(String projectName) async {
+  final projectDir = Directory(projectName);
+  if (await projectDir.exists()) {
+    final overwrite = Confirm(
+      prompt: 'Project "$projectName" already exists. Do you want to delete and recreate it?',
+      defaultValue: false,
+    ).interact();
+
+    if (!overwrite) {
+      print('❌ Project creation cancelled.');
+      exit(0);
+    }
+
+    // Hapus folder lama
+    await projectDir.delete(recursive: true);
+    print('🗑️  Existing project "$projectName" deleted.');
+  }
+}
+
+Future<void> installFlutterFromFvmrc(Shell shell) async {
+  final fvmrcFile = File('.fvmrc');
+  if (await fvmrcFile.exists()) {
+    // Baca file .fvmrc
+    final content = await fvmrcFile.readAsString();
+    try {
+      final decoded = jsonDecode(content);
+      final flutterVersion = decoded['flutter'];
+      if (flutterVersion != null) {
+        print('🚀  Installing Flutter version "$flutterVersion" from .fvmrc via FVM...');
+        await shell.run('fvm install $flutterVersion --setup');
+        print('🐣  Flutter version "$flutterVersion" installed successfully!');
+        await shell.run('fvm use');
+        print('🐣  FVM is now using Flutter version "$flutterVersion"');
+      } else {
+        print('⚠️  .fvmrc does not contain "flutter" key. Skipping FVM install.');
+      }
+    } catch (e) {
+      print('⚠️  Failed to parse .fvmrc: $e');
+    }
+  } else {
+    print('⚠️  No .fvmrc found. Skipping FVM install.');
   }
 }

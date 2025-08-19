@@ -6,3 +6,6 @@
 .fvm/
 
 .vscode/
+
+# Ignore Testing Create
+my_app/
