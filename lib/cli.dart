@@ -80,7 +80,7 @@ Future<void> runCli(List<String> arguments) async {
       final skipPubGet = cmd['no-pub'] as bool? ?? false;
       final kitVersion = cmd['kit-version'] as String?;
       final kitRepo = cmd['kit-repo'] as String?;
-      final forceDownload = cmd['force-download'] as bool? ?? false;
+      final forceDownload = cmd['force-download'] as bool?;
       bool verbose = cmd['verbose'] as bool? ?? false;
       bool debug = cmd['debug'] as bool? ?? false;
       if (debug) verbose = true;

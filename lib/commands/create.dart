@@ -20,7 +20,7 @@ Future<void> createProject({
   bool skipPubGet = false,
   String? kitVersion,
   String? kitRepo,
-  bool forceDownload = false,
+  bool? forceDownload,
   bool verbose = false,
 }) async {
   print(' ♥ flast v$packageVersion');
@@ -66,12 +66,14 @@ Future<void> createProject({
             ).interact()
           : null);
 
-  bool finalForceDownload = forceDownload;
-  if (interactive) {
+  bool finalForceDownload;
+  if (interactive && forceDownload == null) {
     finalForceDownload = Confirm(
       prompt: 'Force download starter kit even if cached?',
       defaultValue: false,
     ).interact();
+  } else {
+    finalForceDownload = forceDownload ?? false;
   }
 
   await cloneStarterKitZipCached(
