@@ -34,6 +34,21 @@ Future<void> runCli(List<String> arguments) async {
 
   parser.addCommand('create', createParser);
 
+  // Subcommand 'new' dengan flags/options lebih simple
+  final newParser = withCommonFlags(
+    ArgParser()
+      ..addFlag('force', abbr: 'f', help: 'Force overwrite existing project', negatable: false)
+      ..addOption('org', abbr: 'o', help: 'Organization for your project')
+      ..addOption('platforms', abbr: 'p', help: 'Comma-separated list of platforms (android,ios,web)')
+      ..addFlag('no-pub', help: 'Skip pub get', negatable: false)
+      ..addFlag('fvm', abbr: 'm', help: 'Install and use Flutter via FVM based on .fvmrc', negatable: false)
+      ..addFlag('force-download', abbr: 'd', help: 'Force download starter kit even if cached', negatable: false)
+      ..addFlag('verbose', help: 'Verbose output', negatable: false)
+      ..addFlag('debug', abbr: 'D', help: 'Debug output', negatable: false),
+  );
+
+  parser.addCommand('new', newParser);
+
   ArgResults results;
   try {
     results = parser.parse(arguments);
@@ -101,6 +116,43 @@ Future<void> runCli(List<String> arguments) async {
       );
       break;
 
+    case 'new':
+      if (cmd['help'] == true) {
+        _printCreateUsage(newParser); // Bisa pakai fungsi yang sama
+        exit(0);
+      }
+      if (cmd['version'] == true) {
+        _printVersion();
+        exit(0);
+      }
+
+      final projectName = cmd.rest.isNotEmpty ? cmd.rest[0] : null;
+      final org = cmd['org'] as String?;
+      final platformsCsv = cmd['platforms'] as String?;
+      final force = cmd['force'] as bool? ?? false;
+      final useFvm = cmd['fvm'] as bool? ?? false;
+      final skipPubGet = cmd['no-pub'] as bool? ?? false;
+      final forceDownload = cmd['force-download'] as bool?;
+      bool verbose = cmd['verbose'] as bool? ?? false;
+      bool debug = cmd['debug'] as bool? ?? false;
+      if (debug) verbose = true;
+
+      await createProject(
+        projectName: projectName,
+        org: org,
+        platformsCsv: platformsCsv,
+        androidLang: 'kotlin',
+        iosLang: 'swift',
+        force: force,
+        useFvm: useFvm,
+        kitVersion: 'main',
+        kitRepo: 'https://github.com/lyrihkaesa/flutter_starter_kit',
+        skipPubGet: skipPubGet,
+        forceDownload: forceDownload,
+        verbose: verbose,
+      );
+      break;
+
     default:
       _printGlobalUsage(parser);
       exit(64);
@@ -118,6 +170,7 @@ ${parser.usage}
 
 Available commands:
   create   Create a new project
+  new      Create a new project for Kaesa Flutter Starter Kit
 ''');
 }
 

@@ -52,8 +52,14 @@ flast --help
 
 ### Create a new Flutter starter kit project
 
+Use **`create`** for full options or **`new`** for a simpler, faster setup:
+
 ```bash
+# Full options (interactive prompts if omitted)
 flast create [projectName] [options]
+
+# Simple creation (fewer options, defaults applied)
+flast new [projectName] [options]
 ```
 
 If you don’t provide arguments, **interactive prompts** will guide you:
@@ -64,24 +70,26 @@ If you don’t provide arguments, **interactive prompts** will guide you:
 - Android language (`kotlin` or `java`)
 - iOS language (`swift` or `objective-c`)
 
+> Note: new skips prompts for Android/iOS language and starter kit version/repo; defaults are used.
+
 ### Options
 
-| Option               | #    | Description                                           |
-| -------------------- | ---- | ----------------------------------------------------- |
-| `--force`            | `-f` | Force overwrite if project already exists             |
-| `--org`              | `-o` | Organization for your project (e.g., `com.example`)   |
-| `--platforms`        | `-p` | Comma-separated list of platforms (`android,ios,web`) |
-| `--android-language` | `-a` | Android language (`kotlin` or `java`)                 |
-| `--ios-language`     | `-i` | iOS language (`swift` or `objective-c`)               |
-| `--help`             | `-h` | Show help information                                 |
-| `--version`          | `-v` | Show flast version                                    |
-| `--fvm`              | `-m` | Use `.fvmrc` version in starter kit                   |
-| `--no-pub`           |      | Skip pub get                                          |
-| `--kit-version`      | `-t` | Starter kit version/tag (e.g., 3.0.1)                 |
-| `--kit-repo`         | `-r` | Starter kit repo URL                                  |
-| `--force-download`   | `-d` | Force download starter kit even if cached             |
-| `--verbose`          |      | Verbose Output                                        |
-| `--debug`            | `-D` | Verbose Output                                        |
+| Command         | Option               | #    | Description                                           |
+| --------------- | -------------------- | ---- | ----------------------------------------------------- |
+| `create`, `new` | `--force`            | `-f` | Force overwrite if project already exists             |
+| `create`, `new` | `--org`              | `-o` | Organization for your project (e.g., `com.example`)   |
+| `create`, `new` | `--platforms`        | `-p` | Comma-separated list of platforms (`android,ios,web`) |
+| `create`        | `--android-language` | `-a` | Android language (`kotlin` or `java`)                 |
+| `create`        | `--ios-language`     | `-i` | iOS language (`swift` or `objective-c`)               |
+| `create`, `new` | `--help`             | `-h` | Show help information                                 |
+| `create`, `new` | `--version`          | `-v` | Show flast version                                    |
+| `create`, `new` | `--fvm`              | `-m` | Use `.fvmrc` version in starter kit                   |
+| `create`, `new` | `--no-pub`           |      | Skip pub get                                          |
+| `create`        | `--kit-version`      | `-t` | Starter kit version/tag (e.g., 3.0.1)                 |
+| `create`        | `--kit-repo`         | `-r` | Starter kit repo URL                                  |
+| `create`, `new` | `--force-download`   | `-d` | Force download starter kit even if cached             |
+| `create`, `new` | `--verbose`          |      | Verbose Output                                        |
+| `create`, `new` | `--debug`            | `-D` | Verbose Output                                        |
 
 ---
 
