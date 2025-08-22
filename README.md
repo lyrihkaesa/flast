@@ -81,6 +81,7 @@ If you don’t provide arguments, **interactive prompts** will guide you:
 | `--kit-repo`         | `-r` | Starter kit repo URL                                  |
 | `--force-download`   | `-d` | Force download starter kit even if cached             |
 | `--verbose`          |      | Verbose Output                                        |
+| `--debug`            | `-D` | Verbose Output                                        |
 
 ---
 
