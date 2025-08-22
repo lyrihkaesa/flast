@@ -63,14 +63,29 @@ Future<void> cloneStarterKitZipCached(
     printBoxMessage('→ Using cached starter kit: \n→ ${zipFile.path}');
   }
 
+  // Cek ukuran file ZIP minimal (GitHub 404 biasanya <10KB)
+  if (zipFile.lengthSync() < 10 * 1024) {
+    printBoxMessage('○ Warning: download kemungkinan gagal, ZIP terlalu kecil.');
+    zipFile.deleteSync();
+    exit(1);
+  }
+
   // Ekstraksi
   printBoxMessage('→ Extracting starter kit to ./$projectName ...');
 
+  // Cek apakah ZIP valid
   final bytes = zipFile.readAsBytesSync();
-  final archive = ZipDecoder().decodeBytes(bytes);
-
-  if (archive.isEmpty) {
-    printBoxMessage('○ ZIP archive is empty!');
+  Archive? archive;
+  try {
+    archive = ZipDecoder().decodeBytes(bytes);
+    if (archive.isEmpty) {
+      printBoxMessage('○ Warning: ZIP archive kosong, download gagal.');
+      zipFile.deleteSync();
+      exit(1);
+    }
+  } catch (e) {
+    printBoxMessage('○ Warning: ZIP corrupt, download gagal.');
+    zipFile.deleteSync();
     exit(1);
   }
 
