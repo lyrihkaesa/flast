@@ -61,7 +61,7 @@ Future<void> createProject({
   bool shouldUseFvm = useFvm;
   if (interactive && !useFvm) {
     shouldUseFvm = Confirm(
-      prompt: 'Do you want to use FVM for Flutter version management?',
+      prompt: 'Do you want to use FVM (Flutter version management)?',
       defaultValue: false,
     ).interact();
   }
@@ -88,10 +88,19 @@ Future<void> createProject({
     '--android-language $androidLanguage --ios-language $iosLanguage .',
   );
 
-  // Post-setup (mason + build_runner)
-  await runPostSetup(shell: shell, interactive: interactive, skipPubGet: skipPubGet);
+  final postSetupResult = await runPostSetup(
+    shell: shell,
+    interactive: interactive,
+    skipPubGet: skipPubGet,
+  );
 
-  _printNextSteps(name);
+  _printNextSteps(
+    name,
+    isUseFvm: shouldUseFvm,
+    isRunMason: postSetupResult['isRunMason']!,
+    isRunBuildRunner: postSetupResult['isRunBuildRunner']!,
+    isSkipPubGet: skipPubGet,
+  );
 }
 
 Future<void> _checkShell() async {
@@ -160,13 +169,38 @@ Future<void> _updatePubspecName(String projectName) async {
   print('✅ Pubspec.yaml updated successfully!');
 }
 
-void _printNextSteps(String projectName) {
+void _printNextSteps(
+  String projectName, {
+  bool isUseFvm = false,
+  bool isRunMason = false,
+  bool isRunBuildRunner = false,
+  bool isSkipPubGet = false,
+}) {
+  final flutterCmd = isUseFvm ? 'fvm flutter' : 'flutter';
+
   print('\n==============================================================\n');
   print('  🎉  Project $projectName created successfully!\n');
+
   logStep('cd $projectName');
-  logStep('mason get');
-  logStep('dart run build_runner build --delete-conflicting-outputs');
-  logStep('flutter run');
+
+  // Pub get
+  if (isSkipPubGet) {
+    logStep('$flutterCmd pub get');
+  }
+
+  // Mason
+  if (!isRunMason) {
+    logStep('mason get');
+  }
+
+  // Build runner
+  if (!isRunBuildRunner) {
+    logStep('dart run build_runner build --delete-conflicting-outputs');
+  }
+
+  // Flutter run
+  logStep('$flutterCmd run');
+
   print('\n==============================================================\n');
 }
 
