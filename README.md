@@ -76,6 +76,7 @@ If you don’t provide arguments, **interactive prompts** will guide you:
 | `--ios-language`     | `-i` | iOS language (`swift` or `objective-c`)               |
 | `--help`             | `-h` | Show help information                                 |
 | `--version`          | `-v` | Show flast version                                    |
+| `--fvm`              | `-m` | Use `.fvmrc` version in starter kit                   |
 
 ---
 

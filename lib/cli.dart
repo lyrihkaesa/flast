@@ -15,12 +15,16 @@ Future<void> runCli(List<String> arguments) async {
   final parser = withCommonFlags(ArgParser());
 
   // Subcommand 'create' dengan flags/options
-  final createParser = withCommonFlags(ArgParser()
-    ..addFlag('force', abbr: 'f', help: 'Force overwrite existing project', negatable: false)
-    ..addOption('org', abbr: 'o', help: 'Organization for your project')
-    ..addOption('platforms', abbr: 'p', help: 'Comma-separated list of platforms (android,ios,web,windows,linux,macos)')
-    ..addOption('android-language', abbr: 'a', allowed: ['kotlin', 'java'], help: 'Android language')
-    ..addOption('ios-language', abbr: 'i', allowed: ['swift', 'objective-c'], help: 'iOS language'));
+  final createParser = withCommonFlags(
+    ArgParser()
+      ..addFlag('force', abbr: 'f', help: 'Force overwrite existing project', negatable: false)
+      ..addOption('org', abbr: 'o', help: 'Organization for your project')
+      ..addOption('platforms',
+          abbr: 'p', help: 'Comma-separated list of platforms (android,ios,web,windows,linux,macos)')
+      ..addOption('android-language', abbr: 'a', allowed: ['kotlin', 'java'], help: 'Android language')
+      ..addOption('ios-language', abbr: 'i', allowed: ['swift', 'objective-c'], help: 'iOS language')
+      ..addFlag('fvm', abbr: 'm', help: 'Install and use Flutter via FVM based on .fvmrc', negatable: false),
+  );
 
   parser.addCommand('create', createParser);
 
@@ -66,6 +70,7 @@ Future<void> runCli(List<String> arguments) async {
       final androidLang = cmd['android-language'] as String?;
       final iosLang = cmd['ios-language'] as String?;
       final force = cmd['force'] as bool? ?? false;
+      final useFvm = cmd['fvm'] as bool? ?? false;
 
       await createProject(
         projectName: projectName,
@@ -74,6 +79,7 @@ Future<void> runCli(List<String> arguments) async {
         androidLang: androidLang,
         iosLang: iosLang,
         force: force,
+        useFvm: useFvm,
       );
       break;
 

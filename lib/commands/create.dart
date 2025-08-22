@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:interact/interact.dart';
 import 'package:process_run/shell.dart';
@@ -14,19 +15,23 @@ Future<void> createProject({
   String? androidLang,
   String? iosLang,
   bool force = false,
+  bool useFvm = false,
 }) async {
-  // Print flast version
   print('flast v$packageVersion');
 
   await _checkShell();
 
-  // Interaktif fallback jika argumen tidak diberikan
+  // Tentukan interaktivitas: jika projectName sudah diisi, skip semua prompt
   final interactive = projectName == null;
+
+  // Pilihan proyek
   final name = projectName ?? _askProjectName();
-  final organization = org ?? _askOrg();
-  final platforms = platformsCsv != null ? platformsCsv.split(',').map((e) => e.trim()).toList() : _askPlatforms();
-  final androidLanguage = androidLang ?? _askAndroidLang();
-  final iosLanguage = iosLang ?? _askIosLang();
+  final organization = org ?? (interactive ? _askOrg() : 'com.example');
+  final platforms = platformsCsv != null
+      ? platformsCsv.split(',').map((e) => e.trim()).toList()
+      : (interactive ? _askPlatforms() : ['android', 'ios', 'web']);
+  final androidLanguage = androidLang ?? (interactive ? _askAndroidLang() : 'kotlin');
+  final iosLanguage = iosLang ?? (interactive ? _askIosLang() : 'swift');
 
   final allowOverwrite = await confirmOverwrite(name, force: force);
   if (!allowOverwrite) {
@@ -35,8 +40,8 @@ Future<void> createProject({
   }
 
   final shell = Shell();
-  final flutterCmd = 'flutter';
 
+  // Clone starter kit
   await _cloneStarterKit(shell, name);
   await _updatePubspecName(name);
 
@@ -51,11 +56,27 @@ Future<void> createProject({
     await safeDelete(platform);
   }
 
+  // FVM setup
+  bool shouldUseFvm = useFvm;
+  if (interactive && !useFvm) {
+    shouldUseFvm = Confirm(
+      prompt: 'Do you want to use FVM for Flutter version management?',
+      defaultValue: false,
+    ).interact();
+  }
+
+  if (shouldUseFvm) {
+    await _setupFvmIfNeeded(shell, useFvm: true);
+  }
+
+  // flutter create
+  final flutterCmd = shouldUseFvm ? 'fvm flutter' : 'flutter';
   await shell.run(
     '$flutterCmd create --org $organization --platforms ${platforms.join(",")} '
     '--android-language $androidLanguage --ios-language $iosLanguage .',
   );
 
+  // Post-setup (mason + build_runner)
   await runPostSetup(shell: shell, interactive: interactive);
 
   _printNextSteps(name);
@@ -128,10 +149,53 @@ Future<void> _updatePubspecName(String projectName) async {
 }
 
 void _printNextSteps(String projectName) {
-  print('\n🎉 Project $projectName created successfully!');
+  print('\n==============================================================\n');
+  print('  🎉  Project $projectName created successfully!\n');
   logStep('cd $projectName');
   logStep('mason get');
   logStep('dart run build_runner build --delete-conflicting-outputs');
   logStep('flutter run');
-  print('========================================================= \n');
+  print('\n==============================================================\n');
+}
+
+Future<void> _setupFvmIfNeeded(Shell shell, {required bool useFvm}) async {
+  if (!useFvm) return;
+
+  final fvmrcFile = File('.fvmrc');
+  if (!await fvmrcFile.exists()) {
+    print('⚠️  No .fvmrc found. Skipping FVM setup.');
+    return;
+  }
+
+  try {
+    // Tampilkan daftar versi FVM yang ada sebelum install
+    print('\nℹ️  Current FVM versions installed:');
+    await shell.run('fvm list');
+
+    // Baca versi Flutter dari .fvmrc
+    final content = await fvmrcFile.readAsString();
+    final decoded = jsonDecode(content);
+    final flutterVersion = decoded['flutter'];
+    if (flutterVersion == null) {
+      print('⚠️  .fvmrc does not contain "flutter" key.');
+      return;
+    }
+
+    print('\n🚀  Installing Flutter version "$flutterVersion" via FVM...');
+    await shell.run('fvm install $flutterVersion --setup');
+
+    // print('⚠️  Setting FVM global version to "$flutterVersion"...');
+    // await shell.run('fvm global $flutterVersion');
+
+    print('🚀  Using FVM version "$flutterVersion" for this project...');
+    await shell.run('fvm use $flutterVersion');
+
+    // Tampilkan daftar versi FVM lagi setelah setting global
+    print('\nℹ️  FVM versions installed');
+    await shell.run('fvm list');
+
+    print('\n✅  Flutter "$flutterVersion" is ready via FVM!');
+  } catch (e) {
+    print('⚠️  Failed to setup FVM: $e');
+  }
 }
