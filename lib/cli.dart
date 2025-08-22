@@ -23,6 +23,7 @@ Future<void> runCli(List<String> arguments) async {
           abbr: 'p', help: 'Comma-separated list of platforms (android,ios,web,windows,linux,macos)')
       ..addOption('android-language', abbr: 'a', allowed: ['kotlin', 'java'], help: 'Android language')
       ..addOption('ios-language', abbr: 'i', allowed: ['swift', 'objective-c'], help: 'iOS language')
+      ..addFlag('no-pub', help: 'Skip pub get', negatable: false)
       ..addFlag('fvm', abbr: 'm', help: 'Install and use Flutter via FVM based on .fvmrc', negatable: false),
   );
 

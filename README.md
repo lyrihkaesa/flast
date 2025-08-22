@@ -77,6 +77,7 @@ If you don’t provide arguments, **interactive prompts** will guide you:
 | `--help`             | `-h` | Show help information                                 |
 | `--version`          | `-v` | Show flast version                                    |
 | `--fvm`              | `-m` | Use `.fvmrc` version in starter kit                   |
+| `--no-pub`           |      | Skip pub get                                          |
 
 ---
 
@@ -112,6 +113,9 @@ flast create
 
 # Create project with options
 flast create my_app --org com.lyrihkaesa --platforms android,ios,web --android-language kotlin --ios-language swift --force
+
+# Create project with fvm and no pub
+flast create my_app --org com.lyrihkaesa --platforms android,ios,web --android-language kotlin --ios-language swift --force --no-pub --fvm
 ```
 
 ---

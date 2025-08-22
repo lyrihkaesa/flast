@@ -16,6 +16,7 @@ Future<void> createProject({
   String? iosLang,
   bool force = false,
   bool useFvm = false,
+  bool skipPubGet = false,
 }) async {
   print('flast v$packageVersion');
 
@@ -69,15 +70,26 @@ Future<void> createProject({
     await _setupFvmIfNeeded(shell, useFvm: true);
   }
 
+  // Tentukan skipPubGet interaktif
+  if (!skipPubGet && interactive) {
+    skipPubGet = Confirm(
+      prompt: 'Do you want to skip "pub get"?',
+      defaultValue: false,
+    ).interact();
+  }
+
+  // Flag untuk flutter create
+  final noPubFlag = skipPubGet ? ' --no-pub ' : ' ';
+
   // flutter create
   final flutterCmd = shouldUseFvm ? 'fvm flutter' : 'flutter';
   await shell.run(
-    '$flutterCmd create --org $organization --platforms ${platforms.join(",")} '
+    '$flutterCmd create$noPubFlag--org $organization --platforms ${platforms.join(",")} '
     '--android-language $androidLanguage --ios-language $iosLanguage .',
   );
 
   // Post-setup (mason + build_runner)
-  await runPostSetup(shell: shell, interactive: interactive);
+  await runPostSetup(shell: shell, interactive: interactive, skipPubGet: skipPubGet);
 
   _printNextSteps(name);
 }
