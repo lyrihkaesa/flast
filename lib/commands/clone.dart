@@ -5,10 +5,12 @@ import '../utils/logger.dart'; // Untuk printBoxMessage
 /// Clone starter kit dari GitHub dengan caching ZIP
 /// [repoUrl] = optional custom repo
 /// [tag] = optional tag atau branch
+/// [forceDownload] = jika true, download ulang meskipun cache ada
 Future<void> cloneStarterKitZipCached(
   String projectName, {
   String? repoUrl,
   String? tag,
+  bool forceDownload = false,
 }) async {
   // Default repo
   final defaultRepo = 'https://github.com/lyrihkaesa/flutter_starter_kit';
@@ -40,8 +42,13 @@ Future<void> cloneStarterKitZipCached(
   // Tentukan URL download
   final downloadUrl = tag != null ? '$repo/archive/refs/tags/$tag.zip' : '$repo/archive/refs/heads/main.zip';
 
-  // Download jika belum ada
-  if (!zipFile.existsSync()) {
+  // Download jika belum ada atau forceDownload = true
+  if (!zipFile.existsSync() || forceDownload) {
+    if (forceDownload && zipFile.existsSync()) {
+      printBoxMessage('→ Force download enabled, deleting cached file:\n→ ${zipFile.path}');
+      zipFile.deleteSync();
+    }
+
     printBoxMessage('↓ Downloading starter kit...\nRepo: $repo\nVersion: ${tag ?? 'main'}\nPath: ${zipFile.path}');
     final result = await Process.run('curl', ['-L', downloadUrl, '-o', zipFile.path]);
     if (result.exitCode != 0) {
