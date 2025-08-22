@@ -9,7 +9,6 @@ Cross-platform: **Windows (Git Bash / PowerShell / CMD)**, **macOS**, and **Linu
 
 You need to have these installed:
 
-- [Git](https://git-scm.com/) → required for `git clone` inside **flast**
 - [Mason](https://pub.dev/packages/mason_cli) → required for templating
 - [Dart](https://dart.dev/get-dart)
 

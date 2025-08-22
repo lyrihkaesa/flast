@@ -10,6 +10,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  archive: ^4.0.7
   args: ^2.4.2 # parsing command line
   interact: ^2.1.1 # prompt interaktif
   process_run: ^0.13.1 # eksekusi command shell

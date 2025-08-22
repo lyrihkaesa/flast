@@ -6,6 +6,7 @@ import '../utils/file_ops.dart';
 import '../utils/logger.dart';
 import '../utils/project_utils.dart';
 import '../version.dart';
+import 'clone.dart';
 import 'post_setup.dart';
 
 Future<void> createProject({
@@ -44,17 +45,15 @@ Future<void> createProject({
   final shell = Shell();
 
   // Clone starter kit
-  await _cloneStarterKit(shell, name);
+  await cloneStarterKitZipCached(name);
   await _updatePubspecName(name);
-
-  await safeDelete('.git');
-  await shell.run('git init');
 
   if (File('.env.example').existsSync()) {
     await runCopy('.env.example', '.env');
   }
 
   for (var platform in ['android', 'ios', 'web', 'windows', 'linux', 'macos']) {
+    printBoxMessage('♦ Cleaning $platform...');
     await safeDelete(platform);
   }
 
@@ -156,12 +155,6 @@ String _askAndroidLang() {
 String _askIosLang() {
   final idx = Select(prompt: 'Choose iOS language', options: ['swift', 'objective-c']).interact();
   return ['swift', 'objective-c'][idx];
-}
-
-// ===== Internal helpers =====
-Future<void> _cloneStarterKit(Shell shell, String projectName) async {
-  await shell.run('git clone https://github.com/lyrihkaesa/flutter_starter_kit.git $projectName');
-  Directory.current = projectName;
 }
 
 Future<void> _updatePubspecName(String projectName) async {
