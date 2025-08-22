@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:interact/interact.dart';
 
+import 'logger.dart';
+
 /// Cek apakah project sudah ada.
 /// Return `true` jika boleh overwrite, `false` jika user batalin.
 Future<bool> confirmOverwrite(String projectName, {bool force = false}) async {
@@ -13,7 +15,7 @@ Future<bool> confirmOverwrite(String projectName, {bool force = false}) async {
   if (force) {
     // skip confirm untuk automation (CI/CD atau --force)
     await projectDir.delete(recursive: true);
-    print('🗑️  Existing project "$projectName" deleted (force).');
+    printBoxMessage('♦ Existing project "$projectName" deleted (force).');
     return true;
   }
 
@@ -27,6 +29,6 @@ Future<bool> confirmOverwrite(String projectName, {bool force = false}) async {
   }
 
   await projectDir.delete(recursive: true);
-  print('🗑️  Existing project "$projectName" deleted.');
+  printBoxMessage('♦ Existing project "$projectName" deleted (force).');
   return true;
 }

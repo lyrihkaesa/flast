@@ -18,27 +18,28 @@ Future<void> createProject({
   bool useFvm = false,
   bool skipPubGet = false,
 }) async {
-  print('flast v$packageVersion');
+  print(' ♥ flast v$packageVersion');
 
   await _checkShell();
 
   // Tentukan interaktivitas: jika projectName sudah diisi, skip semua prompt
   final interactive = projectName == null;
 
-  // Pilihan proyek
   final name = projectName ?? _askProjectName();
+
+  final allowOverwrite = await confirmOverwrite(name, force: force);
+  if (!allowOverwrite) {
+    printBoxMessage('♦ Project creation cancelled.');
+    exit(0);
+  }
+
+  // Pilihan proyek
   final organization = org ?? (interactive ? _askOrg() : 'com.example');
   final platforms = platformsCsv != null
       ? platformsCsv.split(',').map((e) => e.trim()).toList()
       : (interactive ? _askPlatforms() : ['android', 'ios', 'web']);
   final androidLanguage = androidLang ?? (interactive ? _askAndroidLang() : 'kotlin');
   final iosLanguage = iosLang ?? (interactive ? _askIosLang() : 'swift');
-
-  final allowOverwrite = await confirmOverwrite(name, force: force);
-  if (!allowOverwrite) {
-    print('❌ Project creation cancelled.');
-    exit(0);
-  }
 
   final shell = Shell();
 
@@ -91,6 +92,7 @@ Future<void> createProject({
   final postSetupResult = await runPostSetup(
     shell: shell,
     interactive: interactive,
+    useFvm: shouldUseFvm,
     skipPubGet: skipPubGet,
   );
 
@@ -117,10 +119,13 @@ Future<void> _checkShell() async {
   }
 
   if (isBat) {
-    print('⚠️  flast is called via .bat. Interactive prompts may freeze in Git Bash.');
-    print('   Please use PowerShell or CMD for a smooth experience.\n');
+    printBoxMessage(
+      '● flast is called via .bat. Interactive prompts may freeze in Git Bash.\n'
+      '● Please use PowerShell or CMD for a smooth experience.',
+      minWidth: 80,
+    );
   } else {
-    print('✅ Detected compatible shell on Windows.\n');
+    printBoxMessage('♦ Detected compatible shell on Windows.');
   }
 }
 
@@ -166,7 +171,7 @@ Future<void> _updatePubspecName(String projectName) async {
   final lines = pubspecFile.readAsLinesSync();
   final updated = lines.map((l) => l.trim().startsWith('name:') ? 'name: $projectName' : l).toList();
   pubspecFile.writeAsStringSync(updated.join('\n'));
-  print('✅ Pubspec.yaml updated successfully!');
+  printBoxMessage('♦ pubspec.yaml updated successfully!');
 }
 
 void _printNextSteps(
@@ -176,32 +181,36 @@ void _printNextSteps(
   bool isRunBuildRunner = false,
   bool isSkipPubGet = false,
 }) {
-  final flutterCmd = isUseFvm ? 'fvm flutter' : 'flutter';
+  int minWidth = 40;
+  final fvmCmd = isUseFvm ? 'fvm ' : '';
 
-  print('\n==============================================================\n');
-  print('  🎉  Project $projectName created successfully!\n');
+  final buffer = StringBuffer();
 
-  logStep('cd $projectName');
-
-  // Pub get
+  buffer.writeln('\$ cd $projectName');
   if (isSkipPubGet) {
-    logStep('$flutterCmd pub get');
+    buffer.writeln('\$ ${fvmCmd}flutter pub get');
   }
 
-  // Mason
   if (!isRunMason) {
-    logStep('mason get');
+    buffer.writeln('\$ mason get');
   }
 
-  // Build runner
   if (!isRunBuildRunner) {
-    logStep('dart run build_runner build --delete-conflicting-outputs');
+    buffer.writeln('\$ ${fvmCmd}dart run build_runner build --delete-conflicting-outputs');
+    minWidth = 66;
   }
 
-  // Flutter run
-  logStep('$flutterCmd run');
+  buffer.writeln('\$ ${fvmCmd}flutter run');
 
-  print('\n==============================================================\n');
+  printBoxMessage(
+    buffer.toString(),
+    header: '♣ Project my_app created successfully!',
+    minWidth: minWidth,
+    paddingLeft: 2,
+    paddingRight: 0,
+    marginTop: 1,
+    marginBottom: 1,
+  );
 }
 
 Future<void> _setupFvmIfNeeded(Shell shell, {required bool useFvm}) async {
@@ -209,13 +218,13 @@ Future<void> _setupFvmIfNeeded(Shell shell, {required bool useFvm}) async {
 
   final fvmrcFile = File('.fvmrc');
   if (!await fvmrcFile.exists()) {
-    print('⚠️  No .fvmrc found. Skipping FVM setup.');
+    printBoxMessage('○ No .fvmrc found. Skipping FVM setup.');
     return;
   }
 
   try {
     // Tampilkan daftar versi FVM yang ada sebelum install
-    print('\nℹ️  Current FVM versions installed:');
+    printBoxMessage('¶ Current FVM versions installed:');
     await shell.run('fvm list');
 
     // Baca versi Flutter dari .fvmrc
@@ -223,25 +232,25 @@ Future<void> _setupFvmIfNeeded(Shell shell, {required bool useFvm}) async {
     final decoded = jsonDecode(content);
     final flutterVersion = decoded['flutter'];
     if (flutterVersion == null) {
-      print('⚠️  .fvmrc does not contain "flutter" key.');
+      printBoxMessage('○ .fvmrc does not contain "flutter" key.');
       return;
     }
 
-    print('\n🚀  Installing Flutter version "$flutterVersion" via FVM...');
+    printBoxMessage('¶ Installing Flutter version "$flutterVersion" via FVM...');
     await shell.run('fvm install $flutterVersion --setup');
 
-    // print('⚠️  Setting FVM global version to "$flutterVersion"...');
+    // printBoxMessage('¶ Setting FVM global version to "$flutterVersion"...');
     // await shell.run('fvm global $flutterVersion');
 
-    print('🚀  Using FVM version "$flutterVersion" for this project...');
+    printBoxMessage('¶ Using FVM version "$flutterVersion" for this project...');
     await shell.run('fvm use $flutterVersion');
 
     // Tampilkan daftar versi FVM lagi setelah setting global
-    print('\nℹ️  FVM versions installed');
+    printBoxMessage('¶ FVM versions installed');
     await shell.run('fvm list');
 
-    print('\n✅  Flutter "$flutterVersion" is ready via FVM!');
+    printBoxMessage('¶ Flutter "$flutterVersion" is ready via FVM!');
   } catch (e) {
-    print('⚠️  Failed to setup FVM: $e');
+    printBoxMessage('○ Failed to setup FVM: $e');
   }
 }

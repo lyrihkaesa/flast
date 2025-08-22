@@ -1,6 +1,8 @@
 import 'package:interact/interact.dart';
 import 'package:process_run/shell.dart';
 
+import '../utils/logger.dart';
+
 Future<Map<String, bool>> runPostSetup({
   required Shell shell,
   bool useFvm = false,
@@ -18,11 +20,11 @@ Future<Map<String, bool>> runPostSetup({
     ).interact();
 
     if (runMason) {
-      print('🚀 Running "mason get"...');
+      printBoxMessage('♦ Running "mason get"...');
       await shell.run('mason get');
       isRunMason = true;
     } else {
-      print('⚠️ Skipping "mason get".');
+      printBoxMessage('○ Skipping "mason get".');
     }
 
     // Build Runner
@@ -33,17 +35,18 @@ Future<Map<String, bool>> runPostSetup({
       ).interact();
 
       if (runBuildRunner) {
-        print('🚀 Running "build_runner"...');
-        await shell.run('dart run build_runner build --delete-conflicting-outputs');
+        printBoxMessage('♦ Running "build_runner"...');
+        final fvm = useFvm ? 'fvm ' : '';
+        await shell.run('${fvm}dart run build_runner build --delete-conflicting-outputs');
         isRunBuildRunner = true;
       } else {
-        print('⚠️ Skipping build_runner.');
+        printBoxMessage('○ Skipping build_runner.');
       }
     } else {
-      print('⚠️ Skipping build_runner (skipPubGet=true).');
+      printBoxMessage('○ Skipping build_runner "--no-pub".');
     }
   } else {
-    print('ℹ️ Post-setup skipped (interactive prompts disabled).');
+    printBoxMessage('○ Post-setup skipped (interactive prompts disabled).');
   }
 
   return {

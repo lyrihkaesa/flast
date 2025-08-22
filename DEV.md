@@ -31,3 +31,42 @@ fvm dart pub publish --dry-run
 ```bash
 fvm dart pub publish
 ```
+
+# List Symbol Work In Terminal Powershell
+
+arrowRight: →
+arrowLeft: ←
+arrowUp: ↑
+arrowDown: ↓
+heavyArrow: ➜
+hLine: ─
+vLine: │
+cornerTL: ┌
+cornerTR: ┐
+cornerBL: └
+cornerBR: ┘
+crossBox: ┼
+lightShade: ░
+mediumShade: ▒
+darkShade: ▓
+fullBlock: █
+bullet: •
+whiteBullet: ◦
+circle: ○
+filledCircle: ●
+equals: =
+identical: ≡
+approximately: ≈
+notEqual: ≠
+lessOrEqual: ≤
+greaterOrEqual: ≥
+plusMinus: ±
+divide: ÷
+multiply: ×
+spade: ♠
+club: ♣
+heart: ♥
+diamond: ♦
+section: §
+pilcrow: ¶
+degree: °
