@@ -76,8 +76,8 @@ Future<void> runCli(List<String> arguments) async {
       final force = cmd['force'] as bool? ?? false;
       final useFvm = cmd['fvm'] as bool? ?? false;
       final skipPubGet = cmd['no-pub'] as bool? ?? false;
-      final kitVersion = cmd['kit-version'] as String? ?? 'main';
-      final kitRepo = cmd['kit-repo'] as String? ?? 'https://github.com/lyrihkaesa/starter_kits.git';
+      final kitVersion = cmd['kit-version'] as String?;
+      final kitRepo = cmd['kit-repo'] as String?;
       final forceDownload = cmd['force-download'] as bool? ?? false;
 
       await createProject(

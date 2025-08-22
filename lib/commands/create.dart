@@ -50,13 +50,20 @@ Future<void> createProject({
   // **Starter kit**
   String finalKitRepo = kitRepo ??
       (interactive
-          ? Input(prompt: 'Enter starter kit repo URL (default: https://github.com/lyrihkaesa/flutter_starter_kit)')
-              .interact()
+          ? Input(
+              prompt: 'Enter starter kit repo URL (default: https://github.com/lyrihkaesa/flutter_starter_kit)',
+              defaultValue: 'https://github.com/lyrihkaesa/flutter_starter_kit',
+            ).interact()
           : null) ??
       'https://github.com/lyrihkaesa/flutter_starter_kit';
 
   String? finalKitVersion = kitVersion ??
-      (interactive ? Input(prompt: 'Enter starter kit version/tag (leave empty for main)').interact() : null);
+      (interactive
+          ? Input(
+              prompt: 'Enter starter kit version/tag (leave empty for main)',
+              defaultValue: 'main',
+            ).interact()
+          : null);
 
   bool finalForceDownload = forceDownload;
   if (interactive) {
