@@ -18,6 +18,9 @@ Future<void> createProject({
   bool force = false,
   bool useFvm = false,
   bool skipPubGet = false,
+  String? kitVersion,
+  String? kitRepo,
+  bool forceDownload = false,
 }) async {
   print(' ♥ flast v$packageVersion');
 
@@ -44,8 +47,32 @@ Future<void> createProject({
 
   final shell = Shell();
 
-  // Clone starter kit
-  await cloneStarterKitZipCached(name);
+  // **Starter kit**
+  String finalKitRepo = kitRepo ??
+      (interactive
+          ? Input(prompt: 'Enter starter kit repo URL (default: https://github.com/lyrihkaesa/flutter_starter_kit)')
+              .interact()
+          : null) ??
+      'https://github.com/lyrihkaesa/flutter_starter_kit';
+
+  String? finalKitVersion = kitVersion ??
+      (interactive ? Input(prompt: 'Enter starter kit version/tag (leave empty for main)').interact() : null);
+
+  bool finalForceDownload = forceDownload;
+  if (interactive) {
+    finalForceDownload = Confirm(
+      prompt: 'Force download starter kit even if cached?',
+      defaultValue: false,
+    ).interact();
+  }
+
+  await cloneStarterKitZipCached(
+    name,
+    repoUrl: finalKitRepo,
+    tag: finalKitVersion,
+    forceDownload: finalForceDownload,
+  );
+
   await _updatePubspecName(name);
 
   if (File('.env.example').existsSync()) {

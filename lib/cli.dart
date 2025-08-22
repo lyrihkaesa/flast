@@ -24,7 +24,10 @@ Future<void> runCli(List<String> arguments) async {
       ..addOption('android-language', abbr: 'a', allowed: ['kotlin', 'java'], help: 'Android language')
       ..addOption('ios-language', abbr: 'i', allowed: ['swift', 'objective-c'], help: 'iOS language')
       ..addFlag('no-pub', help: 'Skip pub get', negatable: false)
-      ..addFlag('fvm', abbr: 'm', help: 'Install and use Flutter via FVM based on .fvmrc', negatable: false),
+      ..addFlag('fvm', abbr: 'm', help: 'Install and use Flutter via FVM based on .fvmrc', negatable: false)
+      ..addOption('kit-version', abbr: 't', help: 'Starter kit version/tag (e.g., 3.0.1)')
+      ..addOption('kit-repo', abbr: 'r', help: 'Starter kit repo URL')
+      ..addFlag('force-download', abbr: 'd', help: 'Force download starter kit even if cached', negatable: false),
   );
 
   parser.addCommand('create', createParser);
@@ -72,6 +75,10 @@ Future<void> runCli(List<String> arguments) async {
       final iosLang = cmd['ios-language'] as String?;
       final force = cmd['force'] as bool? ?? false;
       final useFvm = cmd['fvm'] as bool? ?? false;
+      final skipPubGet = cmd['no-pub'] as bool? ?? false;
+      final kitVersion = cmd['kit-version'] as String? ?? 'main';
+      final kitRepo = cmd['kit-repo'] as String? ?? 'https://github.com/lyrihkaesa/starter_kits.git';
+      final forceDownload = cmd['force-download'] as bool? ?? false;
 
       await createProject(
         projectName: projectName,
@@ -81,6 +88,10 @@ Future<void> runCli(List<String> arguments) async {
         iosLang: iosLang,
         force: force,
         useFvm: useFvm,
+        skipPubGet: skipPubGet,
+        kitVersion: kitVersion,
+        kitRepo: kitRepo,
+        forceDownload: forceDownload,
       );
       break;
 
