@@ -11,6 +11,7 @@ Future<void> cloneStarterKitZipCached(
   String? repoUrl,
   String? tag,
   bool forceDownload = false,
+  bool verbose = false,
 }) async {
   // Default repo
   final defaultRepo = 'https://github.com/lyrihkaesa/flutter_starter_kit';
@@ -109,15 +110,17 @@ Future<void> cloneStarterKitZipCached(
     }
 
     // Progress sederhana
-    stdout.write('\r    $outPath\n  → Extracting: ${i + 1}/${archive.length} files...');
+    if (verbose) {
+      stdout.write('\r    $outPath\n  → Extracting: ${i + 1}/${archive.length} files...');
+    } else {
+      stdout.write('\r  → Extracting: ${i + 1}/${archive.length} files...');
+    }
   }
 
   stdout.writeln('');
-  printBoxMessage('→ Extraction complete!');
-
   // Pindah ke project directory
   Directory.current = projectName;
-  print('  ♥ Starter kit ready at: \n  → ${Directory.current.path}');
+  printBoxMessage('→ Extraction complete!\n→ ${Directory.current.path}');
 }
 
 /// Pastikan tag valid untuk GitHub

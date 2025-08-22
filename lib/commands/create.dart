@@ -21,6 +21,7 @@ Future<void> createProject({
   String? kitVersion,
   String? kitRepo,
   bool forceDownload = false,
+  bool verbose = false,
 }) async {
   print(' ♥ flast v$packageVersion');
 
@@ -78,6 +79,7 @@ Future<void> createProject({
     repoUrl: finalKitRepo,
     tag: finalKitVersion,
     forceDownload: finalForceDownload,
+    verbose: verbose,
   );
 
   await _updatePubspecName(name);
@@ -85,9 +87,9 @@ Future<void> createProject({
   if (File('.env.example').existsSync()) {
     await runCopy('.env.example', '.env');
   }
-
-  for (var platform in ['android', 'ios', 'web', 'windows', 'linux', 'macos']) {
-    printBoxMessage('♦ Cleaning $platform...');
+  final listPlatform = ['android', 'ios', 'web', 'windows', 'linux', 'macos'];
+  printBoxMessage('♦ Cleaning $listPlatform...');
+  for (var platform in listPlatform) {
     await safeDelete(platform);
   }
 
@@ -240,7 +242,7 @@ void _printNextSteps(
   );
 }
 
-Future<void> _setupFvmIfNeeded(Shell shell, {required bool useFvm}) async {
+Future<void> _setupFvmIfNeeded(Shell shell, {required bool useFvm, bool verbose = false}) async {
   if (!useFvm) return;
 
   final fvmrcFile = File('.fvmrc');
@@ -250,9 +252,11 @@ Future<void> _setupFvmIfNeeded(Shell shell, {required bool useFvm}) async {
   }
 
   try {
-    // Tampilkan daftar versi FVM yang ada sebelum install
-    printBoxMessage('¶ Current FVM versions installed:');
-    await shell.run('fvm list');
+    if (verbose) {
+      // Tampilkan daftar versi FVM yang ada sebelum install
+      printBoxMessage('¶ Current FVM versions installed:');
+      await shell.run('fvm list');
+    }
 
     // Baca versi Flutter dari .fvmrc
     final content = await fvmrcFile.readAsString();
@@ -272,11 +276,13 @@ Future<void> _setupFvmIfNeeded(Shell shell, {required bool useFvm}) async {
     printBoxMessage('¶ Using FVM version "$flutterVersion" for this project...');
     await shell.run('fvm use $flutterVersion');
 
-    // Tampilkan daftar versi FVM lagi setelah setting global
-    printBoxMessage('¶ FVM versions installed');
-    await shell.run('fvm list');
+    if (verbose) {
+      // Tampilkan daftar versi FVM lagi setelah setting global
+      printBoxMessage('¶ FVM versions installed');
+      await shell.run('fvm list');
+    }
 
-    printBoxMessage('¶ Flutter "$flutterVersion" is ready via FVM!');
+    printBoxMessage('¶ Successfully fvm setup for Flutter "$flutterVersion"');
   } catch (e) {
     printBoxMessage('○ Failed to setup FVM: $e');
   }

@@ -80,6 +80,7 @@ If you don’t provide arguments, **interactive prompts** will guide you:
 | `--kit-version`      | `-t` | Starter kit version/tag (e.g., 3.0.1)                 |
 | `--kit-repo`         | `-r` | Starter kit repo URL                                  |
 | `--force-download`   | `-d` | Force download starter kit even if cached             |
+| `--verbose`          |      | Verbose Output                                        |
 
 ---
 

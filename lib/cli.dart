@@ -27,7 +27,8 @@ Future<void> runCli(List<String> arguments) async {
       ..addFlag('fvm', abbr: 'm', help: 'Install and use Flutter via FVM based on .fvmrc', negatable: false)
       ..addOption('kit-version', abbr: 't', help: 'Starter kit version/tag (e.g., 3.0.1)')
       ..addOption('kit-repo', abbr: 'r', help: 'Starter kit repo URL')
-      ..addFlag('force-download', abbr: 'd', help: 'Force download starter kit even if cached', negatable: false),
+      ..addFlag('force-download', abbr: 'd', help: 'Force download starter kit even if cached', negatable: false)
+      ..addFlag('verbose', help: 'Verbose output', negatable: false),
   );
 
   parser.addCommand('create', createParser);
@@ -79,6 +80,7 @@ Future<void> runCli(List<String> arguments) async {
       final kitVersion = cmd['kit-version'] as String?;
       final kitRepo = cmd['kit-repo'] as String?;
       final forceDownload = cmd['force-download'] as bool? ?? false;
+      final verbose = cmd['verbose'] as bool? ?? false;
 
       await createProject(
         projectName: projectName,
@@ -92,6 +94,7 @@ Future<void> runCli(List<String> arguments) async {
         kitVersion: kitVersion,
         kitRepo: kitRepo,
         forceDownload: forceDownload,
+        verbose: verbose,
       );
       break;
 
