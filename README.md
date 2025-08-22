@@ -1,56 +1,88 @@
-# FKIT (Kaesa Flutter Stater Kit Generator)
+# FLAST (Kaesa Flutter Starter Kit Generator)
 
-Ini digunakan untuk mempermudah dalam generate kaesa flutter stater kit.
+Generate **[Kaesa Flutter Starter Kit](https://github.com/lyrihkaesa/flutter_starter_kit)** quickly with a single command.
+Cross-platform: **Windows (Git Bash / PowerShell / CMD)**, **macOS**, and **Linux**.
 
 ---
 
-Jika anda menggunakan fvm pastikan anda masukan flutter ke Environtment Windows.
-Jadi pathnya kira-kira:
+## 📦 Requirements
 
-```txt
-C:\Users\<username>\fvm\versions\3.32.5\bin
-```
+You need to have these installed:
 
-Setelah itu anda pastikan dart bisa dijalankan:
+- [Git](https://git-scm.com/) → required for `git clone` inside **flast**
+- [Mason](https://pub.dev/packages/mason_cli) → required for templating
+
+Install Mason if you don’t have it yet:
 
 ```bash
-dart --version
+dart pub global activate mason_cli
 ```
 
-Setelah itu anda bisa install flast
+Check version:
+
+```bash
+mason --version
+```
+
+---
+
+## 🚀 Installation
+
+Activate **flast** globally:
 
 ```bash
 dart pub global activate flast
 ```
 
-Anda bisa menjalankan flast:
+Check version:
+
+```bash
+flast --version
+```
+
+Show help:
+
+```bash
+flast --help
+```
+
+---
+
+## 🛠️ Usage
+
+Create a new Flutter starter kit project:
 
 ```bash
 flast create
 ```
 
-> Jika anda pengguna windows pastkan gunakan powershell/cmd karena git bash sepertinya tidak bisa saya kurang tahu kenapa tidak bisa, tunggu solusi update nanti.
+---
 
-## Dev
+## 💡 Aliases (Optional for Git Bash on Windows)
+
+If `mason` or `flast` cannot be called directly in **Git Bash**, add these to `~/.bashrc`:
 
 ```bash
-fvm dart pub global activate --source path .
+alias mason="/c/Users/<username>/AppData/Local/Pub/Cache/bin/mason.bat"
+alias flast="/c/Users/<username>/AppData/Local/Pub/Cache/bin/flast.bat"
 ```
 
-```bash
-fvm dart run flast create
-```
+Replace `<username>` with your Windows username.
+Or just use **PowerShell / CMD** directly.
+
+---
+
+## 📖 Example Workflow
 
 ```bash
-dart pub global deactivate flast && dart pub global activate --source path .
-```
+# Check tools
+git --version
+mason --version
+flast --version
 
-## Publish
+# See all available options
+flast --help
 
-```bash
-fvm dart pub publish --dry-run
-```
-
-```bash
-fvm dart pub publish
+# Create a new project
+flast create
 ```

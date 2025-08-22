@@ -1,3 +1,9 @@
+## 0.0.5
+
+- Refactored CLI code for better readability and maintainability.
+- Added support for `--help` and `--version` flags across commands.
+- Internal changes only, no breaking changes.
+
 ## 0.0.4
 
 - Automatic setup dart fvm
