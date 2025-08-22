@@ -1,45 +1,39 @@
 import 'dart:io';
 import 'package:args/args.dart';
-
 import 'commands/create.dart';
 import 'version.dart';
 
-// Helper: tambahkan flag umum (help, version)
+// Tambahkan global flags: help, version
 ArgParser withCommonFlags([ArgParser? parser]) {
   final p = parser ?? ArgParser();
-  p.addFlag(
-    'help',
-    abbr: 'h',
-    help: 'Show usage information',
-    negatable: false,
-  );
-  p.addFlag(
-    'version',
-    abbr: 'v',
-    help: 'Show version information',
-    negatable: false,
-  );
+  p.addFlag('help', abbr: 'h', help: 'Show usage information', negatable: false);
+  p.addFlag('version', abbr: 'v', help: 'Show version information', negatable: false);
   return p;
 }
 
 Future<void> runCli(List<String> arguments) async {
   final parser = withCommonFlags(ArgParser());
 
-  // Subcommand create
+  // Subcommand 'create' dengan flags/options
   final createParser = withCommonFlags(ArgParser()
-    ..addFlag(
-      'force',
-      abbr: 'f',
-      help: 'Force overwrite existing project',
-      negatable: false,
-    ));
+    ..addFlag('force', abbr: 'f', help: 'Force overwrite existing project', negatable: false)
+    ..addOption('org', abbr: 'o', help: 'Organization for your project')
+    ..addOption('platforms', abbr: 'p', help: 'Comma-separated list of platforms (android,ios,web,windows,linux,macos)')
+    ..addOption('android-language', abbr: 'a', allowed: ['kotlin', 'java'], help: 'Android language')
+    ..addOption('ios-language', abbr: 'i', allowed: ['swift', 'objective-c'], help: 'iOS language'));
 
   parser.addCommand('create', createParser);
 
-  // Parse
-  final results = parser.parse(arguments);
+  ArgResults results;
+  try {
+    results = parser.parse(arguments);
+  } catch (e) {
+    print('❌ ${e.toString()}');
+    _printGlobalUsage(parser);
+    exit(64);
+  }
 
-  // Cek global flags dulu
+  // Global flags
   if (results['help'] == true) {
     _printGlobalUsage(parser);
     exit(0);
@@ -49,32 +43,50 @@ Future<void> runCli(List<String> arguments) async {
     exit(0);
   }
 
-  // Handle subcommand
-  switch (results.command?.name) {
+  final cmd = results.command;
+  if (cmd == null) {
+    _printGlobalUsage(parser);
+    exit(64);
+  }
+
+  switch (cmd.name) {
     case 'create':
-      final createArgs = results.command!;
-      if (createArgs['help'] == true) {
+      if (cmd['help'] == true) {
         _printCreateUsage(createParser);
         exit(0);
       }
-      if (createArgs['version'] == true) {
+      if (cmd['version'] == true) {
         _printVersion();
         exit(0);
       }
 
-      final force = createArgs['force'] as bool;
-      await createProject(force: force);
+      final projectName = cmd.rest.isNotEmpty ? cmd.rest[0] : null;
+      final org = cmd['org'] as String?;
+      final platformsCsv = cmd['platforms'] as String?;
+      final androidLang = cmd['android-language'] as String?;
+      final iosLang = cmd['ios-language'] as String?;
+      final force = cmd['force'] as bool? ?? false;
+
+      await createProject(
+        projectName: projectName,
+        org: org,
+        platformsCsv: platformsCsv,
+        androidLang: androidLang,
+        iosLang: iosLang,
+        force: force,
+      );
       break;
 
     default:
       _printGlobalUsage(parser);
-      exit(64); // 64: usage error
+      exit(64);
   }
 }
 
-// Print global usage
+// --- Print helpers ---
 void _printGlobalUsage(ArgParser parser) {
   print('''
+flast v$packageVersion
 Usage: flast <command> [options]
 
 Global options:
@@ -85,17 +97,16 @@ Available commands:
 ''');
 }
 
-// Print create usage
 void _printCreateUsage(ArgParser parser) {
   print('''
-Usage: flast create [options]
+flast v$packageVersion
+Usage: flast create [projectName] [options]
 
 Options:
 ${parser.usage}
 ''');
 }
 
-// Print version
 void _printVersion() {
   print('flast v$packageVersion');
 }
