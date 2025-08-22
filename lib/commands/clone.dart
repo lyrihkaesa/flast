@@ -2,20 +2,48 @@ import 'dart:io';
 import 'package:archive/archive_io.dart';
 import '../utils/logger.dart'; // Untuk printBoxMessage
 
-Future<void> cloneStarterKitZipCached(String projectName) async {
-  // Tentukan home & cache directory
+/// Clone starter kit dari GitHub dengan caching ZIP
+/// [repoUrl] = optional custom repo
+/// [tag] = optional tag atau branch
+Future<void> cloneStarterKitZipCached(
+  String projectName, {
+  String? repoUrl,
+  String? tag,
+}) async {
+  // Default repo
+  final defaultRepo = 'https://github.com/lyrihkaesa/flutter_starter_kit';
+  final repo = repoUrl ?? defaultRepo;
+
+  // Tentukan cache directory
   final homeDir = Platform.isWindows ? Platform.environment['USERPROFILE'] : Platform.environment['HOME'];
   final cacheDir = Directory('${homeDir ?? '.'}/.flast_cache');
   if (!cacheDir.existsSync()) cacheDir.createSync(recursive: true);
 
-  final zipFile = File('${cacheDir.path}/main.zip');
+  // Tentukan nama ZIP sesuai repo/tag
+  String zipFileName;
+  if (repoUrl == null) {
+    // default repo
+    zipFileName = tag != null ? 'kit_${tag.replaceAll('/', '_')}.zip' : 'kit_main.zip';
+  } else {
+    // custom repo, ambil username_repo
+    final uri = Uri.parse(repo);
+    final segments = uri.pathSegments.where((s) => s.isNotEmpty).toList();
+    String repoPart = 'custom_repo';
+    if (segments.length >= 2) {
+      repoPart = '${segments[0]}_${segments[1].replaceAll('.git', '')}';
+    }
+    zipFileName = tag != null ? '${repoPart}_${tag.replaceAll('/', '_')}.zip' : '${repoPart}_main.zip';
+  }
+
+  final zipFile = File('${cacheDir.path}/$zipFileName');
+
+  // Tentukan URL download
+  final downloadUrl = tag != null ? '$repo/archive/refs/tags/$tag.zip' : '$repo/archive/refs/heads/main.zip';
 
   // Download jika belum ada
   if (!zipFile.existsSync()) {
-    printBoxMessage('↓ Downloading starter kit...\nPath: ${zipFile.path}');
-    final result = await Process.run('curl',
-        ['-L', 'https://github.com/lyrihkaesa/flutter_starter_kit/archive/refs/heads/main.zip', '-o', zipFile.path]);
-
+    printBoxMessage('↓ Downloading starter kit...\nRepo: $repo\nVersion: ${tag ?? 'main'}\nPath: ${zipFile.path}');
+    final result = await Process.run('curl', ['-L', downloadUrl, '-o', zipFile.path]);
     if (result.exitCode != 0) {
       printBoxMessage('○ Failed to download starter kit: \n→ ${result.stderr}');
       exit(1);
@@ -36,18 +64,17 @@ Future<void> cloneStarterKitZipCached(String projectName) async {
     exit(1);
   }
 
-  // Root folder di dalam ZIP (biasanya "flutter_starter_kit-main")
+  // Root folder di dalam ZIP (GitHub menaruh semua di folder <repo>-<branch/tag>)
   final rootFolder = archive.first.name.split('/').first;
 
   for (int i = 0; i < archive.length; i++) {
     final file = archive[i];
+
     // Hilangkan folder root GitHub
     final relativePath = file.name.startsWith(rootFolder) ? file.name.substring(rootFolder.length + 1) : file.name;
-
-    if (relativePath.isEmpty) continue; // skip root folder
+    if (relativePath.isEmpty) continue;
 
     final outPath = '$projectName/$relativePath';
-
     if (file.isFile) {
       final outFile = File(outPath);
       outFile.createSync(recursive: true);
@@ -56,9 +83,10 @@ Future<void> cloneStarterKitZipCached(String projectName) async {
       Directory(outPath).createSync(recursive: true);
     }
 
-    // Progress
+    // Progress sederhana
     stdout.write('\r    $outPath\n  → Extracting: ${i + 1}/${archive.length} files...');
   }
+
   stdout.writeln('');
   printBoxMessage('→ Extraction complete!');
 
